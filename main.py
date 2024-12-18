@@ -151,38 +151,33 @@ def rss_parser():
     return res
 
 
-while True:
-    try:
-        rp = rss_parser()
-        rp.reverse()
-        for s in rp:
-            en_data = url_parse(s['source'], s["link"])
-            en_data = s["title"] + "\n\n" + en_data
-            image = s["media_thumbnail"]
-            if en_data:
-                ai = AI.BASE.Gen()
-                ai.system_instructions = [
-                    {"text": AI.BASE.prompts.Instructions.summarizer}
-                ]
-                ai.history_add("user", f'{en_data}')
 
-                ru_data = ai.generate()
-                ru_data = ru_data.replace("#", "")
-                ru_data = ru_data.replace("**", "")
-                ru_data = ru_data.replace("```python", "")
-                ru_data = ru_data.replace("```", "")
+rp = rss_parser()
+rp.reverse()
+for s in rp:
+    en_data = url_parse(s['source'], s["link"])
+    en_data = s["title"] + "\n\n" + en_data
+    image = s["media_thumbnail"]
+    if en_data:
+        ai = AI.BASE.Gen()
+        ai.system_instructions = [
+            {"text": AI.BASE.prompts.Instructions.summarizer}
+        ]
+        ai.history_add("user", f'{en_data}')
 
-                ai.history_add("assistant", ru_data)
+        ru_data = ai.generate()
+        ru_data = ru_data.replace("#", "")
+        ru_data = ru_data.replace("**", "")
+        ru_data = ru_data.replace("```python", "")
+        ru_data = ru_data.replace("```", "")
 
-                print(image)
-                print(ru_data)
+        ai.history_add("assistant", ru_data)
 
-                actions.send_post(token=open("bot_token", "r", encoding="utf-8").read(), channel_id=-1002332331843,
-                                  message=ru_data, media=image, source_link=s["link"])
-                print()
+        print(image)
+        print(ru_data)
 
-    except KeyboardInterrupt:
+        actions.send_post(token=open("bot_token", "r", encoding="utf-8").read(), channel_id=-1002332331843,
+                          message=ru_data, media=image, source_link=s["link"])
+        print()
 
-        break
-    time.sleep(20)
 
