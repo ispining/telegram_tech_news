@@ -64,97 +64,90 @@ def entry2image(entry):
 # driver = uc.Chrome(headless=True)
 
 
-while True:
-    try:
-        res = []
-        if requests.get("https://google.com/").status_code == 200:
-            for source in source_list:
-                rss = actions.Rss(source["name"], source["url"])
-                rp = rss.parse()
-                rp.reverse()
-                for s in rp:
-                    # driver.get(s["link"])
-                    response = requests.get(url=s["link"], cookies=cookies, headers=headers)
+res = []
+if requests.get("https://google.com/").status_code == 200:
+    for source in source_list:
+        rss = actions.Rss(source["name"], source["url"])
+        rp = rss.parse()
+        rp.reverse()
+        for s in rp:
+            # driver.get(s["link"])
+            response = requests.get(url=s["link"], cookies=cookies, headers=headers)
 
-                    soup = BeautifulSoup(response.text, 'html.parser')
+            soup = BeautifulSoup(response.text, 'html.parser')
 
-                    if s['source'] == "BBC":
-                        # Извлекаем основной текст статьи
-                        # BBC обычно использует элементы с классом 'ssrcss-11r1m41-RichTextContainer e5tfeyi6' для контента
-                        content = soup.find('article')
-                        if content:
-                            paragraphs = content.find_all('p')
-                            m = ""
+            if s['source'] == "BBC":
+                # Извлекаем основной текст статьи
+                # BBC обычно использует элементы с классом 'ssrcss-11r1m41-RichTextContainer e5tfeyi6' для контента
+                content = soup.find('article')
+                if content:
+                    paragraphs = content.find_all('p')
+                    m = ""
 
-                            for p in paragraphs:
-                                m += p.text.strip()
+                    for p in paragraphs:
+                        m += p.text.strip()
 
-                            en_data = m
-                    elif s['source'] == "Guardian":
-                        # Извлекаем основной текст статьи
-                        content = soup.find(id="maincontent")
-                        if content:
-                            msg = ""
-                            for p in content.find_all("p"):
-                                msg += "\n\n" + p.text.strip()
-                            en_data = msg
-                    elif s['source'] == "SciTechDaily":
-                        # Извлекаем основной текст статьи
-                        msg = ""
-                        article = soup.find_all("article")
-                        if article:
-                            msg = ""
-                            for a in article:
-                                for i in a.find_all("p"):
-                                    msg += "\n\n" + i.text
-                            en_data = msg
-                    elif s['source'] == "techcrunch":
-                        # Извлекаем основной текст статьи
-                        content = soup.find('figure', class_='wp-block-post-featured-image')
-                        if content:
-                            img = content.find("img")
-                            s["media_thumbnail"] = img.get("src")
-                        paragraphs_div = soup.find('div', class_='entry-content wp-block-post-content is-layout-constrained wp-block-post-content-is-layout-constrained')
-                        if paragraphs_div:
-                            paragraphs = paragraphs_div.find_all('p')
-                            m = ""
+                    en_data = m
+            elif s['source'] == "Guardian":
+                # Извлекаем основной текст статьи
+                content = soup.find(id="maincontent")
+                if content:
+                    msg = ""
+                    for p in content.find_all("p"):
+                        msg += "\n\n" + p.text.strip()
+                    en_data = msg
+            elif s['source'] == "SciTechDaily":
+                # Извлекаем основной текст статьи
+                msg = ""
+                article = soup.find_all("article")
+                if article:
+                    msg = ""
+                    for a in article:
+                        for i in a.find_all("p"):
+                            msg += "\n\n" + i.text
+                    en_data = msg
+            elif s['source'] == "techcrunch":
+                # Извлекаем основной текст статьи
+                content = soup.find('figure', class_='wp-block-post-featured-image')
+                if content:
+                    img = content.find("img")
+                    s["media_thumbnail"] = img.get("src")
+                paragraphs_div = soup.find('div', class_='entry-content wp-block-post-content is-layout-constrained wp-block-post-content-is-layout-constrained')
+                if paragraphs_div:
+                    paragraphs = paragraphs_div.find_all('p')
+                    m = ""
 
-                            for p in paragraphs:
-                                m += p.text.strip()
+                    for p in paragraphs:
+                        m += p.text.strip()
 
-                            en_data = m
+                    en_data = m
 
-                    en_data = s["title"] + "\n\n" + en_data
-                    image = s["media_thumbnail"]
-                    if en_data:
-                        ai = AI.BASE.Gen()
-                        ai.system_instructions = [
-                            {"text": AI.BASE.prompts.Instructions.summarizer}
-                        ]
-                        ai.history_add("user", f'{en_data}')
+            en_data = s["title"] + "\n\n" + en_data
+            image = s["media_thumbnail"]
+            if en_data:
+                ai = AI.BASE.Gen()
+                ai.system_instructions = [
+                    {"text": AI.BASE.prompts.Instructions.summarizer}
+                ]
+                ai.history_add("user", f'{en_data}')
 
-                        ru_data = ai.generate()
-                        ru_data = ru_data.replace("#", "")
-                        ru_data = ru_data.replace("**", "")
-                        ru_data = ru_data.replace("```python", "")
-                        ru_data = ru_data.replace("```", "")
+                ru_data = ai.generate()
+                ru_data = ru_data.replace("#", "")
+                ru_data = ru_data.replace("**", "")
+                ru_data = ru_data.replace("```python", "")
+                ru_data = ru_data.replace("```", "")
 
-                        ai.history_add("assistant", ru_data)
+                ai.history_add("assistant", ru_data)
 
-                        actions.send_post(token=open("bot_token", "r", encoding="utf-8").read(), channel_id=-1002332331843,
-                                          message=ru_data, media=image, source_link=s["link"])
-        else:
-            print(f"[{str(datetime.datetime.now().time())}] No internet")
+                actions.send_post(token=open("bot_token", "r", encoding="utf-8").read(), channel_id=-1002332331843,
+                                  message=ru_data, media=image, source_link=s["link"])
+else:
+    print(f"[{str(datetime.datetime.now().time())}] No internet")
 
-    except KeyboardInterrupt:
+except KeyboardInterrupt:
+        pass
 
-        break
-
-
-    except Exception as e:
+except Exception as e:
         print(f"[{str(datetime.datetime.now().time())}] Error: {e}")
 
-    print(f"[{str(datetime.datetime.now().time())}] Next check in 60 seconds...")
-
-    time.sleep(60)
-
+    
