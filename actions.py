@@ -192,8 +192,11 @@ class Rss:
 
             elif self.name == "techcrunch":
                 data4return = self.techcrunch_parse(entry)
+            
+            self.history = unpick("rss_history")
 
-            if data4return['link'] not in unpick("rss_history"):
+            if data4return['link'] not in self.history:
+                self.history = unpick("rss_history")
                 if datetime.datetime.now() - data4return["time"] < datetime.timedelta(days=2):
                     self.history.append(data4return["link"])
                     res.append(data4return)
