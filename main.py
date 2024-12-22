@@ -142,12 +142,4 @@ if requests.get("https://google.com/").status_code == 200:
                 actions.send_post(token=open("bot_token", "r", encoding="utf-8").read(), channel_id=-1002332331843,
                                   message=ru_data, media=image, source_link=s["link"])
 else:
-    print(f"[{str(datetime.datetime.now().time())}] No internet")
-
-except KeyboardInterrupt:
-        pass
-
-except Exception as e:
-        print(f"[{str(datetime.datetime.now().time())}] Error: {e}")
-
-    
+     print(f"[{str(datetime.datetime.now().time())}] No internet")
