@@ -9,7 +9,6 @@ from bs4 import BeautifulSoup
 import AI.BASE
 import actions
 from actions import pick, unpick
-import undetected_chromedriver as uc
 
 bot_token = open("bot_token", "r", encoding="utf-8").read()
 
