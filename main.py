@@ -43,7 +43,7 @@ headers = {
     }
 
 # pick("history", [])
-pick("rss_history", [])
+# pick("rss_history", [])
 
 source_list = [
     # {"name": "BBC", "url": "http://feeds.bbci.co.uk/news/technology/rss.xml"},
