@@ -1,4 +1,4 @@
-name: CI
+name: techNews
 on:
   push:
     branches: [ main ]
