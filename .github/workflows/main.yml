@@ -3,6 +3,9 @@ on:
   schedule:
     - cron: '*/30 * * * *' # Запуск каждые 30 минут
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
