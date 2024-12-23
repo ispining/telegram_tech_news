@@ -58,10 +58,14 @@ def news_check(content):
     messages = []
     last_message_id = unpick("last_message_id")
     print("start check")
-    for message_id in range(last_message_id-10, last_message_id):
-        message_text = bot.forward_message(1806892656, -1002332331843, message_id).text
-        print(message_text)
+    print(last_message_id)
+    for message_id in range(last_message_id-20, last_message_id):
+        message_text = bot.forward_message(1806892656, -1002332331843, message_id, disable_notification=True).text
+        if not message_text:
+            continue
         ai = BASE.Gen()
+        print("message_text", message_text)
+
         ai.system_instructions = [
             {"text": "Перескажи статью буквально в несколько фраз, но крайне понятно"}
         ]
@@ -76,11 +80,14 @@ def news_check(content):
 
     ai2 = BASE.Gen()
     ai2.system_instructions = [
-        {"text": "Твоя задача проста: Тебе отправляют статью, а ты проверяешь, есть ли она в базе статей. в базе статей предоставлены лишь краткие пересказы. Если статья есть в базе - ответчаешь 'False'. Иначе - 'True'"}
+        {"text": "Твоя задача проста: Тебе отправляют статью, а ты проверяешь, есть ли она в базе статей. в базе статей предоставлены лишь краткие пересказы. Если статья есть в базе - ответчаешь 'False'. Иначе - 'True'. Две статьи на ту же тему но на разных языках - Это одинаковые статьи."}
     ]
-    ai2.history_add("user", f'{content}')
+    ai2.history_add("user", f'{str({"content_for_check": content, "post_base": messages})}')
 
-    return eval(ai2.generate())
+    result = eval(normalize_content(ai2.generate()))
+    print(result)
+
+    return result
 
 
 class Rss:
@@ -153,12 +160,12 @@ class Rss:
     def techcrunch_parse(self, entry):
         pprint(entry)
         published_parsed = entry.get("published_parsed")
+
         if published_parsed:
             published_parsed = datetime.datetime(*published_parsed[:6])
         title = entry.get("title")
         link = entry.get("link")
         media_thumbnail = "None"
-
         data4return = {"source": self.name, "time": published_parsed, "title": title, "link": link,
                        "media_thumbnail": media_thumbnail}
         return data4return
@@ -192,15 +199,13 @@ class Rss:
 
             elif self.name == "techcrunch":
                 data4return = self.techcrunch_parse(entry)
-            
-            self.history = unpick("rss_history")
 
-            if data4return['link'] not in self.history:
-                self.history = unpick("rss_history")
-                if datetime.datetime.now() - data4return["time"] < datetime.timedelta(days=2):
-                    self.history.append(data4return["link"])
+
+            if datetime.datetime.now() - data4return["time"] < datetime.timedelta(days=2):
+                if data4return not in unpick("rss_history"):
+                    self.history = unpick("rss_history")
+                    self.history.append(data4return)
                     res.append(data4return)
-
                     pick("rss_history", self.history)
 
         return res
