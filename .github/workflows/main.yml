@@ -1,19 +1,23 @@
 name: CI
 on:
   schedule:
-    - cron: '*/30 * * * *'
+    - cron: '*/30 * * * *' # Запуск каждые 30 минут
+
 jobs:
   build:
     runs-on: ubuntu-latest
-    steps:      
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4 # Клонирование репозитория
+
       - name: Set up Python
-        uses: actions/checkout@v4
+        uses: actions/setup-python@v4 # Настройка версии Python
         with:
           python-version: '3.11'
-          
+
       - name: Install dependencies
         run: pip install -r r.txt
-        
+
       - name: Run action
         run: python main.py
 
@@ -26,4 +30,4 @@ jobs:
           git push
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        
+
