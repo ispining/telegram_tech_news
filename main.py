@@ -9,6 +9,7 @@ from bs4 import BeautifulSoup
 import AI.BASE
 import actions
 from actions import pick, unpick
+import undetected_chromedriver as uc
 
 bot_token = open("bot_token", "r", encoding="utf-8").read()
 
@@ -123,23 +124,28 @@ if requests.get("https://google.com/").status_code == 200:
                     en_data = m
 
             en_data = s["title"] + "\n\n" + en_data
-            image = s["media_thumbnail"]
-            if en_data:
-                ai = AI.BASE.Gen()
-                ai.system_instructions = [
-                    {"text": AI.BASE.prompts.Instructions.summarizer}
-                ]
-                ai.history_add("user", f'{en_data}')
+            nch = True
+            if nch:
+                image = s["media_thumbnail"]
+                if en_data:
 
-                ru_data = ai.generate()
-                ru_data = ru_data.replace("#", "")
-                ru_data = ru_data.replace("**", "")
-                ru_data = ru_data.replace("```python", "")
-                ru_data = ru_data.replace("```", "")
+                    ai = AI.BASE.Gen()
+                    ai.system_instructions = [
+                        {"text": AI.BASE.prompts.Instructions.summarizer}
+                    ]
+                    ai.history_add("user", f'{en_data}')
 
-                ai.history_add("assistant", ru_data)
+                    ru_data = ai.generate()
+                    ru_data = ru_data.replace("#", "")
+                    ru_data = ru_data.replace("**", "")
+                    ru_data = ru_data.replace("```python", "")
+                    ru_data = ru_data.replace("```", "")
 
-                actions.send_post(token=open("bot_token", "r", encoding="utf-8").read(), channel_id=-1002332331843,
-                                  message=ru_data, media=image, source_link=s["link"])
+                    ai.history_add("assistant", ru_data)
+
+                    actions.send_post(token=open("bot_token", "r", encoding="utf-8").read(), channel_id=-1002332331843,
+                                      message=ru_data, media=image, source_link=s["link"])
 else:
-     print(f"[{str(datetime.datetime.now().time())}] No internet")
+    print(f"[{str(datetime.datetime.now().time())}] No internet")
+
+
